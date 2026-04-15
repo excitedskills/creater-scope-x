@@ -41,8 +41,22 @@
 <button onclick="getData()">Analyze</button>
 
 <div id="output"></div>
+  <div id="ai"></div>
 
 <script>
+async function getAI(channel) {
+  return `
+  🔥 Viral Ideas for ${channel}:
+  
+  1. "I Tried Living Like ${channel} For 24 Hours"
+  2. "Top 10 Secrets Behind ${channel}'s Success"
+  3. "Can You Beat ${channel}'s Challenge?"
+  
+  💡 Growth Tip:
+  Post high-retention videos with strong hooks.
+  `;
+}
+
 async function getData() {
   let channel = document.getElementById("channel").value;
 
@@ -62,6 +76,7 @@ async function getData() {
 
     let info = stats.items[0].statistics;
 
+    // ✅ Show stats
     document.getElementById("output").innerHTML = `
       <div class="card">
         <h2>${channel}</h2>
@@ -70,6 +85,17 @@ async function getData() {
         <p>Videos: ${info.videoCount}</p>
       </div>
     `;
+
+    // ✅ ADD AI HERE (correct place)
+    let ai = await getAI(channel);
+
+    document.getElementById("ai").innerHTML = `
+      <div class="card">
+        <h3>AI Insights</h3>
+        <p>${ai}</p>
+      </div>
+    `;
+
   } catch (error) {
     document.getElementById("output").innerText = "Error fetching data";
   }
