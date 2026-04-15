@@ -2,46 +2,85 @@
 <html>
 <head>
   <title>CreatorScope X</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       font-family: Arial;
       background: #0f172a;
       color: white;
-      text-align: center;
-      padding: 20px;
+      margin: 0;
     }
+
+    h1 {
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      text-align: center;
+    }
+
     input {
-      padding: 10px;
-      width: 300px;
+      padding: 12px;
+      width: 60%;
       border-radius: 8px;
       border: none;
     }
+
     button {
-      padding: 10px 20px;
+      padding: 12px 20px;
       background: #22c55e;
       border: none;
       border-radius: 8px;
-      margin: 10px;
+      margin-left: 10px;
       cursor: pointer;
     }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+
     .card {
       background: #1e293b;
       padding: 20px;
-      margin: 10px;
       border-radius: 12px;
+    }
+
+    .big {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    canvas {
+      margin-top: 30px;
+      background: white;
+      border-radius: 10px;
     }
   </style>
 </head>
+
 <body>
 
 <h1>🚀 CreatorScope X</h1>
 
-<input id="channel" placeholder="Enter Channel Name" />
-<br>
-<button onclick="getData()">Analyze</button>
+<div class="container">
+  <input id="channel" placeholder="Enter YouTube Channel Name" />
+  <button onclick="getData()">Analyze</button>
 
-<div id="output"></div>
+  <div id="output"></div>
   <div id="ai"></div>
+
+  <canvas id="chart"></canvas>
+</div>
 
 <script>
 async function getAI(channel) {
@@ -53,7 +92,7 @@ async function getAI(channel) {
   3. "Can You Beat ${channel}'s Challenge?"
   
   💡 Growth Tip:
-  Post high-retention videos with strong hooks.
+  Focus on high-retention storytelling and strong hooks.
   `;
 }
 
@@ -66,27 +105,51 @@ async function getData() {
   }
 
   try {
-    let res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${channel}&type=channel&key=AIzaSyCJsXeTznWP5Sp0DR2ccUTHUwGB72VoLLU`);
+    let res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${channel}&type=channel&key=YOUR_API_KEY`);
     let data = await res.json();
 
     let channelId = data.items[0].id.channelId;
 
-    let statsRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=AIzaSyCJsXeTznWP5Sp0DR2ccUTHUwGB72VoLLU`);
+    let statsRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=YOUR_API_KEY`);
     let stats = await statsRes.json();
 
     let info = stats.items[0].statistics;
 
-    // ✅ Show stats
+    // Grade system
+    let subs = parseInt(info.subscriberCount);
+    let grade = "B";
+    if (subs > 1000000) grade = "A";
+    if (subs > 10000000) grade = "A+";
+    if (subs > 100000000) grade = "A++";
+
+    // Viral score
+    let viral = Math.floor(Math.random() * 100);
+
+    // Dashboard UI
     document.getElementById("output").innerHTML = `
-      <div class="card">
-        <h2>${channel}</h2>
-        <p>Subscribers: ${info.subscriberCount}</p>
-        <p>Views: ${info.viewCount}</p>
-        <p>Videos: ${info.videoCount}</p>
+      <h2>${channel}</h2>
+      <h3>Grade: ${grade}</h3>
+      <p>🔥 Viral Score: ${viral}/100</p>
+
+      <div class="grid">
+        <div class="card">
+          <div class="big">${info.subscriberCount}</div>
+          <div>Subscribers</div>
+        </div>
+
+        <div class="card">
+          <div class="big">${info.viewCount}</div>
+          <div>Views</div>
+        </div>
+
+        <div class="card">
+          <div class="big">${info.videoCount}</div>
+          <div>Videos</div>
+        </div>
       </div>
     `;
 
-    // ✅ ADD AI HERE (correct place)
+    // AI Insights
     let ai = await getAI(channel);
 
     document.getElementById("ai").innerHTML = `
@@ -96,10 +159,29 @@ async function getData() {
       </div>
     `;
 
+    // Chart
+    let ctx = document.getElementById('chart');
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ["Subscribers", "Views", "Videos"],
+        datasets: [{
+          label: "Channel Stats",
+          data: [
+            info.subscriberCount,
+            info.viewCount,
+            info.videoCount
+          ]
+        }]
+      }
+    });
+
   } catch (error) {
     document.getElementById("output").innerText = "Error fetching data";
   }
 }
 </script>
+
 </body>
 </html>
