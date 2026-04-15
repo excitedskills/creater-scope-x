@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CreatorScope X</title>
-
-  <!-- Chart.js -->
+  <title>CreatorScope X Pro</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -12,174 +10,200 @@
       background: #0f172a;
       color: white;
       margin: 0;
-    }
-
-    h1 {
-      padding: 20px;
       text-align: center;
     }
 
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
       padding: 20px;
-      text-align: center;
     }
 
     input {
-      padding: 12px;
-      width: 60%;
-      border-radius: 8px;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 6px;
       border: none;
     }
 
     button {
-      padding: 12px 20px;
+      padding: 10px;
       background: #22c55e;
       border: none;
-      border-radius: 8px;
-      margin-left: 10px;
+      border-radius: 6px;
       cursor: pointer;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-top: 20px;
     }
 
     .card {
       background: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-    }
-
-    .big {
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    canvas {
-      margin-top: 30px;
-      background: white;
+      padding: 15px;
+      margin: 10px;
       border-radius: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 10px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>🚀 CreatorScope X</h1>
+<h1>🚀 CreatorScope X Pro</h1>
 
 <div class="container">
-  <input id="channel" placeholder="Enter YouTube Channel Name" />
-  <button onclick="getData()">Analyze</button>
 
-  <div id="output"></div>
-  <div id="ai"></div>
+  <!-- LOGIN -->
+  <div id="login">
+    <input id="username" placeholder="Enter username" />
+    <button onclick="login()">Login</button>
+  </div>
 
-  <canvas id="chart"></canvas>
+  <!-- APP -->
+  <div id="app" style="display:none">
+
+    <h3 id="welcome"></h3>
+
+    <input id="channel" placeholder="Enter channel" />
+    <button onclick="getData()">Analyze</button>
+
+    <div id="output"></div>
+    <div id="ai"></div>
+    <div id="saved"></div>
+
+    <canvas id="chart"></canvas>
+
+  </div>
+
 </div>
 
 <script>
-async function getAI(channel) {
-  return `
-  🔥 Viral Ideas for ${channel}:
-  
-  1. "I Tried Living Like ${channel} For 24 Hours"
-  2. "Top 10 Secrets Behind ${channel}'s Success"
-  3. "Can You Beat ${channel}'s Challenge?"
-  
-  💡 Growth Tip:
-  Focus on high-retention storytelling and strong hooks.
-  `;
+let currentUser = null;
+
+// LOGIN
+function login() {
+  let user = document.getElementById("username").value;
+  if (!user) return alert("Enter username");
+
+  localStorage.setItem("user", user);
+  currentUser = user;
+
+  document.getElementById("login").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("welcome").innerText = "Welcome " + user;
+
+  loadSaved();
 }
 
+// AUTO LOGIN
+window.onload = () => {
+  let user = localStorage.getItem("user");
+  if (user) {
+    currentUser = user;
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("welcome").innerText = "Welcome " + user;
+    loadSaved();
+  }
+};
+
+// REAL AI (GPT)
+async function getAI(channel) {
+  let res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer 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",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "user", content: `Give YouTube growth strategy for ${channel}` }
+      ]
+    })
+  });
+
+  let data = await res.json();
+  return data.choices[0].message.content;
+}
+
+// FETCH DATA
 async function getData() {
   let channel = document.getElementById("channel").value;
 
-  if (!channel) {
-    alert("Enter channel name");
-    return;
-  }
+  let res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${channel}&type=channel&key=AIzaSyCJsXeTznWP5Sp0DR2ccUTHUwGB72VoLLU`);
+  let data = await res.json();
 
-  try {
-    let res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${channel}&type=channel&key=AIzaSyCJsXeTznWP5Sp0DR2ccUTHUwGB72VoLLU`);
-    let data = await res.json();
+  let id = data.items[0].id.channelId;
 
-    let channelId = data.items[0].id.channelId;
+  let statsRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${id}&key=AIzaSyCJsXeTznWP5Sp0DR2ccUTHUwGB72VoLLU`);
+  let stats = await statsRes.json();
 
-    let statsRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=AIzaSyCJsXeTznWP5Sp0DR2ccUTHUwGB72VoLLU`);
-    let stats = await statsRes.json();
+  let info = stats.items[0].statistics;
+  let subs = parseInt(info.subscriberCount);
 
-    let info = stats.items[0].statistics;
-
-    // Grade system
-    let subs = parseInt(info.subscriberCount);
-    let grade = "B";
-    if (subs > 1000000) grade = "A";
-    if (subs > 10000000) grade = "A+";
-    if (subs > 100000000) grade = "A++";
-
-    // Viral score
-    let viral = Math.floor(Math.random() * 100);
-
-    // Dashboard UI
-    document.getElementById("output").innerHTML = `
+  document.getElementById("output").innerHTML = `
+    <div class="card">
       <h2>${channel}</h2>
-      <h3>Grade: ${grade}</h3>
-      <p>🔥 Viral Score: ${viral}/100</p>
+      <p>Subscribers: ${subs}</p>
+      <p>Views: ${info.viewCount}</p>
+      <p>Videos: ${info.videoCount}</p>
+    </div>
+  `;
 
-      <div class="grid">
-        <div class="card">
-          <div class="big">${info.subscriberCount}</div>
-          <div>Subscribers</div>
-        </div>
+  // AI
+  let ai = await getAI(channel);
+  document.getElementById("ai").innerHTML = `
+    <div class="card">
+      <h3>AI Insights</h3>
+      <p>${ai}</p>
+    </div>
+  `;
 
-        <div class="card">
-          <div class="big">${info.viewCount}</div>
-          <div>Views</div>
-        </div>
+  // SAVE REPORT
+  saveReport(channel, subs);
 
-        <div class="card">
-          <div class="big">${info.videoCount}</div>
-          <div>Videos</div>
-        </div>
-      </div>
-    `;
+  // CHART
+  new Chart(document.getElementById("chart"), {
+    type: "bar",
+    data: {
+      labels: ["Subscribers", "Views", "Videos"],
+      datasets: [{
+        label: "Stats",
+        data: [subs, info.viewCount, info.videoCount]
+      }]
+    }
+  });
+}
 
-    // AI Insights
-    let ai = await getAI(channel);
+// SAVE REPORT
+function saveReport(channel, subs) {
+  let reports = JSON.parse(localStorage.getItem("reports") || "[]");
 
-    document.getElementById("ai").innerHTML = `
-      <div class="card">
-        <h3>AI Insights</h3>
-        <p>${ai}</p>
-      </div>
-    `;
+  reports.push({
+    user: currentUser,
+    channel: channel,
+    subs: subs
+  });
 
-    // Chart
-    let ctx = document.getElementById('chart');
+  localStorage.setItem("reports", JSON.stringify(reports));
+  loadSaved();
+}
 
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ["Subscribers", "Views", "Videos"],
-        datasets: [{
-          label: "Channel Stats",
-          data: [
-            info.subscriberCount,
-            info.viewCount,
-            info.videoCount
-          ]
-        }]
-      }
-    });
+// LOAD SAVED
+function loadSaved() {
+  let reports = JSON.parse(localStorage.getItem("reports") || "[]");
 
-  } catch (error) {
-    document.getElementById("output").innerText = "Error fetching data";
-  }
+  let userReports = reports.filter(r => r.user === currentUser);
+
+  document.getElementById("saved").innerHTML = `
+    <div class="card">
+      <h3>Saved Reports</h3>
+      ${userReports.map(r => `<p>${r.channel} - ${r.subs} subs</p>`).join("")}
+    </div>
+  `;
 }
 </script>
 
