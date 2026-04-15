@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CreatorScope X</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    input {
+      padding: 10px;
+      width: 300px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      background: #22c55e;
+      border: none;
+      border-radius: 8px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🚀 CreatorScope X</h1>
+
+<input id="channel" placeholder="Enter Channel Name" />
+<br>
+<button onclick="getData()">Analyze</button>
+
+<div id="output"></div>
+
+<script>
+async function getData() {
+  let channel = document.getElementById("channel").value;
+
+  if (!channel) {
+    alert("Enter channel name");
+    return;
+  }
+
+  // TEMP DATA (Replace with API later)
+  let data = {
+    name: channel,
+    subs: "477M",
+    views: "117B",
+    uploads: "964",
+    earnings: "$2M - $47M"
+  };
+
+  document.getElementById("output").innerHTML = `
+    <div class="card">
+      <h2>${data.name}</h2>
+      <p>Subscribers: ${data.subs}</p>
+      <p>Views: ${data.views}</p>
+      <p>Uploads: ${data.uploads}</p>
+      <p>Estimated Earnings: ${data.earnings}</p>
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>
