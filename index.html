@@ -105,12 +105,12 @@ async function getData() {
   }
 
   try {
-    let res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${channel}&type=channel&key=YOUR_API_KEY`);
+    let res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${channel}&type=channel&key=AIzaSyCJsXeTznWP5Sp0DR2ccUTHUwGB72VoLLU`);
     let data = await res.json();
 
     let channelId = data.items[0].id.channelId;
 
-    let statsRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=YOUR_API_KEY`);
+    let statsRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=AIzaSyCJsXeTznWP5Sp0DR2ccUTHUwGB72VoLLU`);
     let stats = await statsRes.json();
 
     let info = stats.items[0].statistics;
