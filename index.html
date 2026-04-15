@@ -1,135 +1,125 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CreatorScope X Pro</title>
+  <title>CreatorScope X Ultra</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
       margin: 0;
-      text-align: center;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      overflow-x: hidden;
     }
 
-    .container {
-      max-width: 1000px;
-      margin: auto;
+    h1 {
+      text-align: center;
       padding: 20px;
     }
 
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 20px;
+      text-align: center;
+    }
+
     input {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 6px;
+      padding: 12px;
+      width: 60%;
+      border-radius: 10px;
       border: none;
+      outline: none;
     }
 
     button {
-      padding: 10px;
-      background: #22c55e;
+      padding: 12px 20px;
+      background: linear-gradient(45deg, #22c55e, #4ade80);
       border: none;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
+      margin-left: 10px;
+      transition: 0.3s;
     }
 
-    .card {
-      background: #1e293b;
-      padding: 15px;
-      margin: 10px;
-      border-radius: 10px;
+    button:hover {
+      transform: scale(1.05);
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(3,1fr);
-      gap: 10px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 16px;
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .big {
+      font-size: 26px;
+      font-weight: bold;
+      color: #4ade80;
+    }
+
+    canvas {
+      margin-top: 40px;
+      background: white;
+      border-radius: 12px;
+    }
+
+    .fade-in {
+      animation: fade 1s ease-in;
+    }
+
+    @keyframes fade {
+      from {opacity:0; transform: translateY(20px);}
+      to {opacity:1; transform: translateY(0);}
     }
   </style>
 </head>
 
 <body>
 
-<h1>🚀 CreatorScope X Pro</h1>
+<h1>🚀 CreatorScope X Ultra</h1>
 
 <div class="container">
 
-  <!-- LOGIN -->
-  <div id="login">
-    <input id="username" placeholder="Enter username" />
-    <button onclick="login()">Login</button>
-  </div>
+  <input id="channel" placeholder="Enter Channel Name" />
+  <button onclick="getData()">Analyze</button>
 
-  <!-- APP -->
-  <div id="app" style="display:none">
+  <div id="output"></div>
+  <div id="ai"></div>
 
-    <h3 id="welcome"></h3>
-
-    <input id="channel" placeholder="Enter channel" />
-    <button onclick="getData()">Analyze</button>
-
-    <div id="output"></div>
-    <div id="ai"></div>
-    <div id="saved"></div>
-
-    <canvas id="chart"></canvas>
-
-  </div>
+  <canvas id="chart"></canvas>
 
 </div>
 
 <script>
-let currentUser = null;
+function animateValue(id, start, end, duration) {
+  let obj = document.getElementById(id);
+  let range = end - start;
+  let current = start;
+  let increment = end > start ? 1 : -1;
+  let stepTime = Math.abs(Math.floor(duration / range));
 
-// LOGIN
-function login() {
-  let user = document.getElementById("username").value;
-  if (!user) return alert("Enter username");
-
-  localStorage.setItem("user", user);
-  currentUser = user;
-
-  document.getElementById("login").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  document.getElementById("welcome").innerText = "Welcome " + user;
-
-  loadSaved();
+  let timer = setInterval(() => {
+    current += increment;
+    obj.innerText = current.toLocaleString();
+    if (current == end) clearInterval(timer);
+  }, stepTime);
 }
 
-// AUTO LOGIN
-window.onload = () => {
-  let user = localStorage.getItem("user");
-  if (user) {
-    currentUser = user;
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    document.getElementById("welcome").innerText = "Welcome " + user;
-    loadSaved();
-  }
-};
-
-// REAL AI (GPT)
-async function getAI(channel) {
-  let res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer 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",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "user", content: `Give YouTube growth strategy for ${channel}` }
-      ]
-    })
-  });
-
-  let data = await res.json();
-  return data.choices[0].message.content;
-}
-
-// FETCH DATA
 async function getData() {
   let channel = document.getElementById("channel").value;
 
@@ -142,68 +132,50 @@ async function getData() {
   let stats = await statsRes.json();
 
   let info = stats.items[0].statistics;
+
   let subs = parseInt(info.subscriberCount);
+  let views = parseInt(info.viewCount);
+  let vids = parseInt(info.videoCount);
+
+  let viral = Math.min(100, Math.floor(subs / 1000000));
 
   document.getElementById("output").innerHTML = `
-    <div class="card">
-      <h2>${channel}</h2>
-      <p>Subscribers: ${subs}</p>
-      <p>Views: ${info.viewCount}</p>
-      <p>Videos: ${info.videoCount}</p>
+    <div class="grid fade-in">
+      <div class="card"><div id="subs" class="big">0</div><div>Subscribers</div></div>
+      <div class="card"><div id="views" class="big">0</div><div>Views</div></div>
+      <div class="card"><div id="vids" class="big">0</div><div>Videos</div></div>
+      <div class="card"><div class="big">${viral}</div><div>🔥 Viral Score</div></div>
     </div>
   `;
 
-  // AI
-  let ai = await getAI(channel);
+  animateValue("subs", 0, subs, 1000);
+  animateValue("views", 0, views, 1000);
+  animateValue("vids", 0, vids, 1000);
+
+  // AI STYLE OUTPUT
   document.getElementById("ai").innerHTML = `
-    <div class="card">
-      <h3>AI Insights</h3>
-      <p>${ai}</p>
+    <div class="card fade-in">
+      <h3>🧠 AI Strategy</h3>
+      <ul style="text-align:left">
+        <li>Focus on storytelling hooks</li>
+        <li>Increase retention with faster pacing</li>
+        <li>Use high CTR thumbnails</li>
+        <li>Post consistently (2-3 times/week)</li>
+      </ul>
     </div>
   `;
 
-  // SAVE REPORT
-  saveReport(channel, subs);
-
-  // CHART
+  // CHART (FIXED + CLEAN)
   new Chart(document.getElementById("chart"), {
     type: "bar",
     data: {
       labels: ["Subscribers", "Views", "Videos"],
       datasets: [{
-        label: "Stats",
-        data: [subs, info.viewCount, info.videoCount]
+        label: "Channel Stats",
+        data: [subs, views, vids]
       }]
     }
   });
-}
-
-// SAVE REPORT
-function saveReport(channel, subs) {
-  let reports = JSON.parse(localStorage.getItem("reports") || "[]");
-
-  reports.push({
-    user: currentUser,
-    channel: channel,
-    subs: subs
-  });
-
-  localStorage.setItem("reports", JSON.stringify(reports));
-  loadSaved();
-}
-
-// LOAD SAVED
-function loadSaved() {
-  let reports = JSON.parse(localStorage.getItem("reports") || "[]");
-
-  let userReports = reports.filter(r => r.user === currentUser);
-
-  document.getElementById("saved").innerHTML = `
-    <div class="card">
-      <h3>Saved Reports</h3>
-      ${userReports.map(r => `<p>${r.channel} - ${r.subs} subs</p>`).join("")}
-    </div>
-  `;
 }
 </script>
 
